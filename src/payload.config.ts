@@ -75,6 +75,8 @@ export default buildConfig({
         return {}
       })()
     : {}),
+  // Vercel preview fallback — no dashboard env vars on free tier
+  secret: process.env.PAYLOAD_SECRET || 'c75bab1c82a284b0705914d2',
   db: sqliteAdapter({
     client: {
       url: (() => {
