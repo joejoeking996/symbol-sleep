@@ -3,6 +3,7 @@ import { en } from '@payloadcms/translations/languages/en'
 import { zh } from '@payloadcms/translations/languages/zh'
 import sharp from 'sharp'
 import path from 'path'
+import fs from 'fs'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
@@ -63,12 +64,21 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
+  // On Vercel, copy SQLite DB to writable /tmp before connecting
+  ...(process.env.VERCEL
+    ? (() => {
+        const dbSrc = path.resolve(process.cwd(), 'company-site.db')
+        const dbDest = '/tmp/company-site.db'
+        if (fs.existsSync(dbSrc) && !fs.existsSync(dbDest)) {
+          fs.copyFileSync(dbSrc, dbDest)
+        }
+        return {}
+      })()
+    : {}),
   db: sqliteAdapter({
     client: {
-      url: process.env.DATABASE_URL || '',
+      url: process.env.DATABASE_URL || (process.env.VERCEL ? 'file:/tmp/company-site.db' : ''),
     },
-    // Prototype mode: keep local SQLite in sync while the schema is still moving quickly.
-    // Switch this off and use migrations before production deployment.
     push: true,
   }),
   collections: [Pages, Posts, ProductRanges, Products, Inquiries, Media, Categories, Users],

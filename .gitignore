@@ -7,6 +7,9 @@ node_modules
 next-env.d.ts
 .vercel
 
+# Large files
+public/media/4-Video.mp4
+
 # Keep media files for deployment
 public/robots.txt
 public/sitemap*.xml
