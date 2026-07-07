@@ -76,6 +76,8 @@ export default buildConfig({
     : {}),
   // Vercel preview fallback — no dashboard env vars on free tier
   secret: process.env.PAYLOAD_SECRET || 'c75bab1c82a284b0705914d2',
+  // Use empty string so media URLs are relative (works everywhere, not hardcoded to localhost)
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
   db: sqliteAdapter({
     client: {
       url: (() => {
