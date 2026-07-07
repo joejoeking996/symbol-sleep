@@ -15,6 +15,10 @@ export const getMediaUrl = (url: string | null | undefined, cacheTag?: string | 
     // Already relative, keep as-is
   }
 
+  // Payload local upload URLs read through an API route. The same files are
+  // committed under `public/media`, so use Vercel's static asset path instead.
+  clean = clean.replace(/^\/api\/media\/file\//, '/media/')
+
   if (cacheTag && cacheTag !== '') {
     cacheTag = encodeURIComponent(cacheTag)
   }
