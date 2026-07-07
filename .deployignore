@@ -1,0 +1,15 @@
+.git/
+.next/
+node_modules/
+db-backups/
+test-results/
+playwright-report/
+blob-report/
+
+.env
+company-site.db
+dev-server.log
+
+public/robots.txt
+public/sitemap*.xml
+public/media/

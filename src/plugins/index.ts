@@ -1,0 +1,125 @@
+import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
+import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
+import { redirectsPlugin } from '@payloadcms/plugin-redirects'
+import { seoPlugin } from '@payloadcms/plugin-seo'
+import { searchPlugin } from '@payloadcms/plugin-search'
+import { Plugin } from 'payload'
+import { revalidateRedirects } from '@/hooks/revalidateRedirects'
+import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
+import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
+import { searchFields } from '@/search/fieldOverrides'
+import { beforeSyncWithSearch } from '@/search/beforeSync'
+
+import { Page, Post } from '@/payload-types'
+import { getServerSideURL } from '@/utilities/getURL'
+
+const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
+  return doc?.title ? `${doc.title} | SYMBOL` : 'SYMBOL'
+}
+
+const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
+  const url = getServerSideURL()
+
+  return doc?.slug ? `${url}/${doc.slug}` : url
+}
+
+export const plugins: Plugin[] = [
+  redirectsPlugin({
+    collections: ['pages', 'posts'],
+    overrides: {
+      labels: {
+        singular: { en: 'Redirect', zh: '跳转规则' },
+        plural: { en: 'Redirects', zh: '跳转规则' },
+      },
+      admin: {
+        group: { en: 'Settings', zh: '系统设置' },
+      },
+      // @ts-expect-error - This is a valid override, mapped fields don't resolve to the same type
+      fields: ({ defaultFields }) => {
+        return defaultFields.map((field) => {
+          if ('name' in field && field.name === 'from') {
+            return {
+              ...field,
+              admin: {
+                description: {
+                  en: 'Rebuild the website after changing redirect rules.',
+                  zh: '修改跳转规则后需要重新构建网站。',
+                },
+              },
+            }
+          }
+          return field
+        })
+      },
+      hooks: {
+        afterChange: [revalidateRedirects],
+      },
+    },
+  }),
+  nestedDocsPlugin({
+    collections: ['categories'],
+    generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
+  }),
+  seoPlugin({
+    generateTitle,
+    generateURL,
+  }),
+  formBuilderPlugin({
+    fields: {
+      payment: false,
+    },
+    formOverrides: {
+      labels: {
+        singular: { en: 'Form', zh: '表单配置' },
+        plural: { en: 'Forms', zh: '表单配置' },
+      },
+      admin: {
+        group: { en: 'Leads', zh: '客户线索' },
+      },
+      fields: ({ defaultFields }) => {
+        return defaultFields.map((field) => {
+          if ('name' in field && field.name === 'confirmationMessage') {
+            return {
+              ...field,
+              editor: lexicalEditor({
+                features: ({ rootFeatures }) => {
+                  return [
+                    ...rootFeatures,
+                    FixedToolbarFeature(),
+                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
+                  ]
+                },
+              }),
+            }
+          }
+          return field
+        })
+      },
+    },
+    formSubmissionOverrides: {
+      labels: {
+        singular: { en: 'Form Submission', zh: '表单提交' },
+        plural: { en: 'Form Submissions', zh: '表单提交' },
+      },
+      admin: {
+        group: { en: 'Leads', zh: '客户线索' },
+      },
+    },
+  }),
+  searchPlugin({
+    collections: ['posts'],
+    beforeSync: beforeSyncWithSearch,
+    searchOverrides: {
+      labels: {
+        singular: { en: 'Search Result', zh: '搜索结果' },
+        plural: { en: 'Search Results', zh: '搜索结果' },
+      },
+      admin: {
+        group: { en: 'Content', zh: '内容运营' },
+      },
+      fields: ({ defaultFields }) => {
+        return [...defaultFields, ...searchFields]
+      },
+    },
+  }),
+]
