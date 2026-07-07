@@ -64,20 +64,28 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  // On Vercel, copy SQLite DB to writable /tmp before connecting
+  // On Vercel: copy DB to /tmp (only writable path in serverless runtime).
+  // During build, fallback to project dir which is fully writable.
   ...(process.env.VERCEL
     ? (() => {
-        const dbSrc = path.resolve(process.cwd(), 'company-site.db')
-        const dbDest = '/tmp/company-site.db'
-        if (fs.existsSync(dbSrc) && !fs.existsSync(dbDest)) {
-          fs.copyFileSync(dbSrc, dbDest)
-        }
+        try {
+          const src = path.resolve(process.cwd(), 'company-site.db')
+          if (fs.existsSync(src)) fs.copyFileSync(src, '/tmp/company-site.db')
+        } catch {}
         return {}
       })()
     : {}),
   db: sqliteAdapter({
     client: {
-      url: process.env.DATABASE_URL || (process.env.VERCEL ? 'file:/tmp/company-site.db' : ''),
+      url: (() => {
+        if (process.env.DATABASE_URL) return process.env.DATABASE_URL
+        if (process.env.VERCEL) {
+          return fs.existsSync('/tmp/company-site.db')
+            ? 'file:/tmp/company-site.db'
+            : 'file:./company-site.db'
+        }
+        return ''
+      })(),
     },
     push: true,
   }),
