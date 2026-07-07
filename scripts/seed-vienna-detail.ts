@@ -1,3 +1,4 @@
+// @ts-nocheck
 import config from '@payload-config'
 import 'dotenv/config'
 import { getPayload } from 'payload'
