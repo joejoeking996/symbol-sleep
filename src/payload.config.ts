@@ -65,7 +65,6 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   // On Vercel: copy DB to /tmp (only writable path in serverless runtime).
-  // During build, fallback to project dir which is fully writable.
   ...(process.env.VERCEL
     ? (() => {
         try {
