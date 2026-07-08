@@ -5,6 +5,8 @@ import Image from 'next/image'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { getMediaUrl } from '@/utilities/getMediaUrl'
+
 type ExplodedLayer = {
   id?: string | null
   name: string
@@ -42,11 +44,11 @@ const layerAssetVersion = 'product-template-20260706'
 
 function fullUrl(path: string | null | undefined, cacheTag?: string | null): string {
   if (!path) return ''
-  const base = process.env.NEXT_PUBLIC_SERVER_URL || ''
+  const clean = getMediaUrl(path)
   const params = new URLSearchParams()
   if (cacheTag) params.set('updated', String(new Date(cacheTag).getTime()))
   params.set('v', layerAssetVersion)
-  return `${base}${path}?${params.toString()}`
+  return `${clean}?${params.toString()}`
 }
 
 /* 鈹€鈹€鈹€鈹€ Hero 鈹€鈹€鈹€鈹€ */

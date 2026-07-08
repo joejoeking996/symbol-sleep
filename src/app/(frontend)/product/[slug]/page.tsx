@@ -69,7 +69,7 @@ export default async function ProductPage({ params: paramsPromise }: Args) {
           color: layer.color,
           layerImage: layerImg
             ? {
-                url: layerImg.url,
+                url: getImagePath(layerImg),
                 alt: layerImg.alt,
                 width: layerImg.width,
                 height: layerImg.height,
@@ -150,6 +150,11 @@ export default async function ProductPage({ params: paramsPromise }: Args) {
 function getImageSrc(image: Media | null): string {
   if (!image?.url) return ''
   return getMediaUrl(image.url, image.updatedAt)
+}
+
+function getImagePath(image: Media | null): string {
+  if (!image?.url) return ''
+  return getMediaUrl(image.url)
 }
 
 function splitParagraphs(value: string): string[] {
